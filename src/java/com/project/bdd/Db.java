@@ -6,6 +6,7 @@ package com.project.bdd;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 
 /**
  *
@@ -16,14 +17,10 @@ public class Db {
     public Db() {
     }
 
-    public Connection connectDb() {
-        Connection conn = null;
-        try {
-            Class.forName("com.mysql.jdbc.Driver");
-            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/employee", "root", "");
-        } catch (Exception e) {
-            System.out.println(e);
-        }
+    public static Connection connect() throws ClassNotFoundException, SQLException {
+    
+        Class.forName("com.mysql.jdbc.Driver");
+        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/gestion_vente", "root", "");
 
         return conn;
     }
