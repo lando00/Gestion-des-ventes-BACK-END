@@ -74,41 +74,41 @@ public class ClientDao {
 
         return client;
     }
-    
+
     public String addClient(String newNumClient, String newNom, String newPrenom, String newTel) {
         String message;
-        String  numClient = newNumClient;
-        String  nom = newNom;
-        String  prenom = newPrenom;
-        String  tel = newTel; 
+        String numClient = newNumClient;
+        String nom = newNom;
+        String prenom = newPrenom;
+        String tel = newTel;
         boolean isFormCorrect = numClient != null && nom != null && prenom != null && tel != null;
-        
+
         try {
             Connection conn = Db.connect();
             Statement stmt = conn.createStatement();
-            
-            if(isFormCorrect){ 
+
+            if (isFormCorrect) {
                 int rs = stmt.executeUpdate("INSERT INTO clients SET numClient='" + numClient + "', nom='" + nom + "', prenom='" + prenom + "', telephone='" + tel + "'");
                 message = rs == 1 ? "Le client a été bien enregistré !" : "Erreur d'enregistrement, réessayer svp !";
-            }else{
+            } else {
                 message = "Veuillez bien remplir tous les champs !";
             }
-            
+
         } catch (Exception e) {
             message = "Erreur d'enregistrement, réessayer svp !";
         }
-        
-       return message; 
+
+        return message;
     }
 
     public String updateClient(String num, String numClient, String nom, String prenom, String tel) {
         Client client = this.getUniqueClient(num);
         String message;
-        
-        if(client != null){
+
+        if (client != null) {
             boolean isFormCorrect = numClient != null && nom != null && prenom != null && tel != null;
-            
-            if(isFormCorrect){
+
+            if (isFormCorrect) {
                 try {
                     Connection conn = Db.connect();
                     Statement stmt = conn.createStatement();
@@ -117,38 +117,36 @@ public class ClientDao {
                 } catch (Exception e) {
                     message = "Erreur de modification";
                 }
-            }else{
+            } else {
                 message = "Veuillez bien remplir tous les champs !";
             }
-            
-        }else{
+
+        } else {
             message = "Le client n'existe pas dans la liste";
         }
-        
-        
-       return message; 
+
+        return message;
     }
-    
+
     public String deleteClient(String num) {
         Client client = this.getUniqueClient(num);
         String message;
-        
-        if(client != null){
+
+        if (client != null) {
             try {
-               Connection conn = Db.connect();
-               Statement stmt = conn.createStatement();
-               int rs = stmt.executeUpdate("DELETE FROM clients WHERE numClient='"+ num +"'");
-               message = rs == 1 ? "Le client a été bien supprimé !" : "Erreur, veuillez réessayer !";
+                Connection conn = Db.connect();
+                Statement stmt = conn.createStatement();
+                int rs = stmt.executeUpdate("DELETE FROM clients WHERE numClient='" + num + "'");
+                message = rs == 1 ? "Le client a été bien supprimé !" : "Erreur, veuillez réessayer !";
             } catch (Exception e) {
                 message = "Erreur, veuillez réessayer !";
             }
-            
-        }else{
+
+        } else {
             message = "Le client n'existe pas dans la liste";
         }
-        
-        
-       return message; 
+
+        return message;
     }
 
 }
