@@ -5,7 +5,7 @@
 package com.project.service;
 
 import com.project.dao.ClientDao;
-import com.project.entity.Client;
+import com.project.models.Client;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.GET;

@@ -5,7 +5,7 @@
 package com.project.dao;
 
 import com.project.bdd.Db;
-import com.project.entity.Client;
+import com.project.models.Client;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -67,8 +67,6 @@ public class ClientDao {
                 client = new Client(numClient, nom, prenom, tel);
 
                 return client;
-            } else {
-
             }
         } catch (Exception e) {
             System.out.println(e);
@@ -91,7 +89,6 @@ public class ClientDao {
             
             if(isFormCorrect){ 
                 int rs = stmt.executeUpdate("INSERT INTO clients SET numClient='" + numClient + "', nom='" + nom + "', prenom='" + prenom + "', telephone='" + tel + "'");
-                
                 message = rs == 1 ? "Le client a été bien enregistré !" : "Erreur d'enregistrement, réessayer svp !";
             }else{
                 message = "Veuillez bien remplir tous les champs !";
@@ -104,23 +101,30 @@ public class ClientDao {
        return message; 
     }
 
-    public String updateClient(String num, String newNumClient, String newNom, String newPrenom, String newTel) {
+    public String updateClient(String num, String numClient, String nom, String prenom, String tel) {
         Client client = this.getUniqueClient(num);
         String message;
-        String  numClient = newNumClient != null ?  newNumClient : client.getNumClient();
-        String  nom = newNom != null ?  newNom : client.getNom();
-        String  prenom = newPrenom != null ?  newPrenom : client.getPrenom();
-        String  tel = newTel != null ?  newTel : client.getTel();
         
-        try {
-            Connection conn = Db.connect();
-            Statement stmt = conn.createStatement();
-            int rs = stmt.executeUpdate("UPDATE clients SET numClient='" + numClient + "', nom='" + nom + "', prenom='" + prenom + "', telephone='" + tel + "' WHERE numClient='" + num + "'");
-            message = rs == 1 ? "Modification réussi !" : "Erreur de modification";
-                
-        } catch (Exception e) {
-            message = e.getMessage();
+        if(client != null){
+            boolean isFormCorrect = numClient != null && nom != null && prenom != null && tel != null;
+            
+            if(isFormCorrect){
+                try {
+                    Connection conn = Db.connect();
+                    Statement stmt = conn.createStatement();
+                    int rs = stmt.executeUpdate("UPDATE clients SET numClient='" + numClient + "', nom='" + nom + "', prenom='" + prenom + "', telephone='" + tel + "' WHERE numClient='" + num + "'");
+                    message = rs == 1 ? "Modification réussi !" : "Erreur de modification";
+                } catch (Exception e) {
+                    message = "Erreur de modification";
+                }
+            }else{
+                message = "Veuillez bien remplir tous les champs !";
+            }
+            
+        }else{
+            message = "Le client n'existe pas dans la liste";
         }
+        
         
        return message; 
     }
@@ -129,19 +133,20 @@ public class ClientDao {
         Client client = this.getUniqueClient(num);
         String message;
         
-        try {
-            Connection conn = Db.connect();
-            Statement stmt = conn.createStatement();
-            int rs = stmt.executeUpdate("DELETE FROM clients WHERE numClient='"+ num +"'");
-            if(rs == 1)
-                message = "Le client a été bien supprimé !";
-            else{
+        if(client != null){
+            try {
+               Connection conn = Db.connect();
+               Statement stmt = conn.createStatement();
+               int rs = stmt.executeUpdate("DELETE FROM clients WHERE numClient='"+ num +"'");
+               message = rs == 1 ? "Le client a été bien supprimé !" : "Erreur, veuillez réessayer !";
+            } catch (Exception e) {
                 message = "Erreur, veuillez réessayer !";
             }
-                
-        } catch (Exception e) {
-            message = "Erreur, veuillez réessayer !";
+            
+        }else{
+            message = "Le client n'existe pas dans la liste";
         }
+        
         
        return message; 
     }
