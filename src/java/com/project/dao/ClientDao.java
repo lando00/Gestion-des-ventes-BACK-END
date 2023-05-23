@@ -25,7 +25,7 @@ public class ClientDao {
         List<Client> clientList = new ArrayList();
 
         try {
-
+            
             Connection conn = Db.connect();
             Statement statement = conn.createStatement();
             ResultSet result = statement.executeQuery("SELECT * from clients");
@@ -49,14 +49,14 @@ public class ClientDao {
         return clientList;
     }
 
-    public Client getUniqueClient(String num) {
+    public Client getUniqueClient(String id) {
 
         Client client = null;
 
         try {
             Connection conn = Db.connect();
             Statement statement = conn.createStatement();
-            ResultSet result = statement.executeQuery("SELECT * FROM clients WHERE numClient='" + num + "'");
+            ResultSet result = statement.executeQuery("SELECT * FROM clients WHERE numClient='" + id + "'");
 
             if (result.first()) {
                 String numClient = result.getString(1);
@@ -101,8 +101,8 @@ public class ClientDao {
         return message;
     }
 
-    public String updateClient(String num, String numClient, String nom, String prenom, String tel) {
-        Client client = this.getUniqueClient(num);
+    public String updateClient(String id, String numClient, String nom, String prenom, String tel) {
+        Client client = this.getUniqueClient(id);
         String message;
 
         if (client != null) {
@@ -112,7 +112,7 @@ public class ClientDao {
                 try {
                     Connection conn = Db.connect();
                     Statement stmt = conn.createStatement();
-                    int rs = stmt.executeUpdate("UPDATE clients SET numClient='" + numClient + "', nom='" + nom + "', prenom='" + prenom + "', telephone='" + tel + "' WHERE numClient='" + num + "'");
+                    int rs = stmt.executeUpdate("UPDATE clients SET numClient='" + numClient + "', nom='" + nom + "', prenom='" + prenom + "', telephone='" + tel + "' WHERE numClient='" + id + "'");
                     message = rs == 1 ? "Modification réussi !" : "Erreur de modification";
                 } catch (Exception e) {
                     message = "Erreur de modification";
@@ -128,15 +128,15 @@ public class ClientDao {
         return message;
     }
 
-    public String deleteClient(String num) {
-        Client client = this.getUniqueClient(num);
+    public String deleteClient(String id) {
+        Client client = this.getUniqueClient(id);
         String message;
 
         if (client != null) {
             try {
                 Connection conn = Db.connect();
                 Statement stmt = conn.createStatement();
-                int rs = stmt.executeUpdate("DELETE FROM clients WHERE numClient='" + num + "'");
+                int rs = stmt.executeUpdate("DELETE FROM clients WHERE numClient='" + id + "'");
                 message = rs == 1 ? "Le client a été bien supprimé !" : "Erreur, veuillez réessayer !";
             } catch (Exception e) {
                 message = "Erreur, veuillez réessayer !";
