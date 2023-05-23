@@ -78,6 +78,32 @@ public class MaterielDao {
 
         return materiel;
     }
+    
+    public static Materiel getMaterielByDesign(String matDesign) {
+
+        Materiel materiel = null;
+
+        try {
+            Connection conn = Db.connect();
+            Statement statement = conn.createStatement();
+            ResultSet result = statement.executeQuery("SELECT * FROM materiels WHERE design='" + matDesign + "'");
+
+            if (result.first()) {
+                String numMateriel = result.getString(1);
+                String design = result.getString(2);
+                int prixUnitaire = result.getInt(3);
+                int stock = result.getInt(4);
+
+                materiel = new Materiel(numMateriel, design, prixUnitaire, stock);
+
+                return materiel;
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
+        return materiel;
+    }
 
     public String addMateriel(String newNumMateriel, String newDesign, Integer newPrixUnitaire, Integer newStock) {
         String message;
