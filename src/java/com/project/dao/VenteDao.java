@@ -37,7 +37,7 @@ public class VenteDao {
                     + "prixUnitaire*quantite as montant, date, numVente FROM `ventes`, `clients`, `materiels` "
                     + "WHERE ventes.numClient = clients.numClient AND ventes.numMateriel = materiels.numMateriel");
             while (result.next()) {
-                String nomClient = result.getString(1) +" "+ result.getString(2);
+                String nomClient = result.getString(2);
                 String materiel = result.getString(3);
                 int prixUnitaire = result.getInt(4);
                 int quantite = result.getInt(5);
@@ -71,7 +71,7 @@ public class VenteDao {
                     + "WHERE ventes.numClient = clients.numClient AND ventes.numMateriel = materiels.numMateriel "
                     + "AND numVente = '"+ id +"'");
             if (result.first()) {
-                String nomClient = result.getString(1) + result.getString(2);
+                String nomClient = result.getString(2);
                 String materiel = result.getString(3);
                 int prixUnitaire = result.getInt(4);
                 int quantite = result.getInt(5);

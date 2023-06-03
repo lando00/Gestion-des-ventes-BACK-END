@@ -10,6 +10,8 @@ package com.project.dao;
  */
 import com.project.bdd.Db;
 import com.project.models.Materiel;
+import com.project.models.MaterielVendu;
+import com.project.utils.Alerte;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -79,6 +81,38 @@ public class MaterielDao {
         return materiel;
     }
     
+    
+    public List<MaterielVendu> getMaterielVendu() {
+        List<MaterielVendu> materielList = new ArrayList();
+
+        try {
+
+            Connection conn = Db.connect();
+            Statement statement = conn.createStatement();
+            ResultSet result = statement.executeQuery("SELECT materiels.numMateriel, materiels.design,"
+                    + " materiels.prixUnitaire, materiels.stock, materiels.prixUnitaire*ventes.quantite as montant "
+                    + "FROM `ventes`, `materiels` WHERE ventes.numMateriel = materiels.numMateriel;");
+            while (result.next()) {
+                String numMateriel = result.getString("numMateriel");
+                String design = result.getString("design");
+                Integer prixUnitaire = result.getInt("prixUnitaire");
+                Integer stock = result.getInt("stock");
+                Integer montant = result.getInt("montant");
+                
+                materielList.add(new MaterielVendu(numMateriel, design, prixUnitaire, stock, montant));
+            }
+
+            result.close();
+            statement.close();
+            conn.close();
+
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
+        return materielList;
+    }
+    
     public static Materiel getMaterielByDesign(String matDesign) {
 
         Materiel materiel = null;
@@ -105,13 +139,9 @@ public class MaterielDao {
         return materiel;
     }
 
-    public String addMateriel(String newNumMateriel, String newDesign, Integer newPrixUnitaire, Integer newStock) {
-        String message;
-        String numMateriel = newNumMateriel;
-        String design = newDesign;
-        Integer prixUnitaire = newPrixUnitaire;
-        Integer stock = newStock;
-        boolean isFormCorrect = numMateriel != null && design != null && prixUnitaire != null && stock != null;
+    public Alerte addMateriel(String numMateriel, String design, Integer prixUnitaire, Integer stock) {
+        Alerte alerte = new Alerte();
+        boolean isFormCorrect = !numMateriel.isEmpty() && !design.isEmpty() && prixUnitaire != null && stock != null;
         
         try {
             Connection conn = Db.connect();
@@ -119,64 +149,89 @@ public class MaterielDao {
 
             if (isFormCorrect) {
                 int rs = stmt.executeUpdate("INSERT INTO materiels SET numMateriel='" + numMateriel + "', design='" + design + "', prixUnitaire='" + prixUnitaire + "', stock='" + stock + "'");
-                message = rs == 1 ? "Le materiel a été bien enregistré !" : "Erreur d'enregistrement, réessayer svp !";
+                if(rs == 1){
+                    alerte.setType("success");
+                    alerte.setMessage("Le materiel a été bien enregistré !");
+                }else{
+                    alerte.setType("error");
+                    alerte.setMessage("Erreur d'enregistrement, réessayer svp !");
+                }
             } else {
-                message = "Veuillez bien remplir tous les champs !";
+                alerte.setType("warning");
+                alerte.setMessage("Veuillez bien remplir tous les champs !");
             }
 
         } catch (Exception e) {
-            message = "Erreur d'enregistrement, réessayer svp !";
+            alerte.setType("error");
+            alerte.setMessage("Erreur d'enregistrement, réessayer svp !");
         }
 
-        return message;
+        return alerte;
     }
 
-    public String updateMateriel(String id, String numMateriel, String design, Integer prixUnitaire, Integer stock) {
+    public Alerte updateMateriel(String id, String numMateriel, String design, Integer prixUnitaire, Integer stock) {
         Materiel materiel = this.getUniqueMateriel(id);
-        String message;
+        Alerte alerte = new Alerte();
 
         if (materiel != null) {
-            boolean isFormCorrect = numMateriel != null && design != null && prixUnitaire != null && stock != null;
+            boolean isFormCorrect = !numMateriel.isEmpty() && !design.isEmpty() && prixUnitaire != null && stock != null;
 
             if (isFormCorrect) {
                 try {
                     Connection conn = Db.connect();
                     Statement stmt = conn.createStatement();
                     int rs = stmt.executeUpdate("UPDATE materiels SET numMateriel='" + numMateriel + "', design='" + design + "', prixUnitaire='" + prixUnitaire + "', stock='" + stock + "' WHERE numMateriel='" + id + "'");
-                    message = rs == 1 ? "Modification réussi !" : "Erreur de modification";
+                    if(rs == 1){
+                        alerte.setType("success");
+                        alerte.setMessage("Modification réussi !");
+                    }else{
+                        alerte.setType("error");
+                        alerte.setMessage("Erreur d'enregistrement, réessayer svp !");
+                    }
                 } catch (Exception e) {
-                    message = "Erreur de modification";
+                     alerte.setType("error");
+                     alerte.setMessage("Erreur d'enregistrement, réessayer svp !");
                 }
             } else {
-                message = "Veuillez bien remplir tous les champs !";
+                alerte.setType("warning");
+                alerte.setMessage("Veuillez bien remplir tous les champs !");
             }
 
         } else {
-            message = "Le client n'existe pas dans la liste";
+             alerte.setType("warning");
+             alerte.setMessage("Le materiel n'existe pas dans la liste !");
         }
 
-        return message;
+        return alerte;
     }
 
-    public String deleteMateriel(String id) {
+    public Alerte deleteMateriel(String id) {
         Materiel materiel = this.getUniqueMateriel(id);
-        String message;
+        Alerte alerte = new Alerte();
 
         if (materiel != null) {
             try {
                 Connection conn = Db.connect();
                 Statement stmt = conn.createStatement();
                 int rs = stmt.executeUpdate("DELETE FROM materiels WHERE numMateriel='" + id + "'");
-                message = rs == 1 ? "Le materiel a été bien supprimé !" : "Erreur, veuillez réessayer !";
+                if(rs == 1){
+                    alerte.setType("success");
+                    alerte.setMessage("Le materiel a été bien supprimé !");
+                }else{
+                    alerte.setType("error");
+                    alerte.setMessage("Erreur, veuillez réessayer !");
+                }
             } catch (Exception e) {
-                message = "Erreur, veuillez réessayer !";
+                alerte.setType("error");
+                alerte.setMessage("Erreur, veuillez réessayer !");
             }
 
         } else {
-            message = "Le materiel n'existe pas dans la liste";
+             alerte.setType("warning");
+             alerte.setMessage("Le materiel n'existe pas dans la liste !");
         }
 
-        return message;
+        return alerte;
     }
 
 }

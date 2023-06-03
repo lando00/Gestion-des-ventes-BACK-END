@@ -5,7 +5,10 @@
 package com.project.service;
 
 import com.project.dao.ClientDao;
+import com.project.models.ChiffreAffaire;
 import com.project.models.Client;
+import com.project.models.InfoClient;
+import com.project.utils.Alerte;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.GET;
@@ -40,24 +43,39 @@ public class ClientService {
         return clientDao.getUniqueClient(numClient);
     }
     
+    @GET
+    @Path("/info_client/{num}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<InfoClient> infoClient(@PathParam("num") String numClient) {
+        return clientDao.getInfoClient(numClient);
+    }
+    
+    @GET
+    @Path("/chiffre_affaire")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ChiffreAffaire> chiffreAffaire() {
+        return clientDao.getChiffreAffaire();
+    }
+    
+    
     @POST
     @Path("/add")
     @Produces(MediaType.APPLICATION_JSON)
-    public String addClient(@FormParam("numClient") String numClient, @FormParam("nom") String nom, @FormParam("prenom") String prenom, @FormParam("tel") String tel){
+    public Alerte addClient(@FormParam("numClient") String numClient, @FormParam("nom") String nom, @FormParam("prenom") String prenom, @FormParam("tel") String tel){
         return clientDao.addClient(numClient, nom, prenom, tel);
     }
     
-    @PUT
+    @PUT  
     @Path("/update/{num}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String updateClient(@PathParam("num") String num ,@FormParam("numClient") String numClient, @FormParam("nom") String nom, @FormParam("prenom") String prenom, @FormParam("tel") String tel){
+    public Alerte updateClient(@PathParam("num") String num ,@FormParam("numClient") String numClient, @FormParam("nom") String nom, @FormParam("prenom") String prenom, @FormParam("tel") String tel){
         return clientDao.updateClient(num, numClient, nom, prenom, tel);
     }
     
     @DELETE
     @Path("/{num}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String deleteClient(@PathParam("num") String numClient) {
+    public Alerte deleteClient(@PathParam("num") String numClient) {
         return clientDao.deleteClient(numClient);
     }
 }

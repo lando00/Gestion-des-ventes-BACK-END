@@ -5,7 +5,11 @@
 package com.project.dao;
 
 import com.project.bdd.Db;
+import com.project.models.ChiffreAffaire;
 import com.project.models.Client;
+import com.project.models.InfoClient;
+import com.project.models.Vente;
+import com.project.utils.Alerte;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -48,7 +52,38 @@ public class ClientDao {
 
         return clientList;
     }
+    
+    public List<ChiffreAffaire> getChiffreAffaire() {
+        List<ChiffreAffaire> clientList = new ArrayList();
 
+        try {
+            
+            Connection conn = Db.connect();
+            Statement statement = conn.createStatement();
+            ResultSet result = statement.executeQuery("SELECT clients.numClient, clients.nom, clients.prenom, "
+                    + "materiels.prixUnitaire*ventes.quantite as montant, YEAR(ventes.date) as annee FROM `ventes`, `materiels`, `clients` "
+                    + "WHERE ventes.numMateriel = materiels.numMateriel AND clients.numClient = ventes.numClient;");
+            while (result.next()) {
+                String numClient = result.getString("numClient");
+                String nom = result.getString("nom");
+                String prenom = result.getString("prenom");
+                Integer montant = result.getInt("montant");
+                String annee = result.getString("annee");
+
+                clientList.add(new ChiffreAffaire(numClient, nom, prenom, montant, annee));
+            }
+
+            result.close();
+            statement.close();
+            conn.close();
+
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
+        return clientList;
+    }
+    
     public Client getUniqueClient(String id) {
 
         Client client = null;
@@ -75,78 +110,137 @@ public class ClientDao {
         return client;
     }
 
-    public String addClient(String newNumClient, String newNom, String newPrenom, String newTel) {
-        String message;
-        String numClient = newNumClient;
-        String nom = newNom;
-        String prenom = newPrenom;
-        String tel = newTel;
-        boolean isFormCorrect = numClient != null && nom != null && prenom != null && tel != null;
+    public Alerte addClient(String numClient, String nom, String prenom, String tel) {
+        
+        Alerte alerte = new Alerte();
+    
+        boolean isFormCorrect = !numClient.isEmpty() && !nom.isEmpty() && !prenom.isEmpty() && !tel.isEmpty();
 
         try {
             Connection conn = Db.connect();
             Statement stmt = conn.createStatement();
-
             if (isFormCorrect) {
                 int rs = stmt.executeUpdate("INSERT INTO clients SET numClient='" + numClient + "', nom='" + nom + "', prenom='" + prenom + "', telephone='" + tel + "'");
-                message = rs == 1 ? "Le client a été bien enregistré !" : "Erreur d'enregistrement, réessayer svp !";
+                if(rs == 1){
+                    alerte.setType("success");
+                    alerte.setMessage("Le client a été bien enregistré !");
+                }else{
+                    alerte.setType("error");
+                    alerte.setMessage("Erreur d'enregistrement, réessayer svp !");
+                }
             } else {
-                message = "Veuillez bien remplir tous les champs !";
+                alerte.setType("warning");
+                alerte.setMessage("Veuillez bien remplir tous les champs !");
             }
 
         } catch (Exception e) {
-            message = "Erreur d'enregistrement, réessayer svp !";
+             alerte.setType("error");
+             alerte.setMessage("Erreur d'enregistrement, réessayer svp !");
         }
-
-        return message;
+        
+        return alerte;
     }
 
-    public String updateClient(String id, String numClient, String nom, String prenom, String tel) {
+    public Alerte updateClient(String id, String numClient, String nom, String prenom, String tel) {
         Client client = this.getUniqueClient(id);
-        String message;
+        Alerte alerte = new Alerte();
 
         if (client != null) {
-            boolean isFormCorrect = numClient != null && nom != null && prenom != null && tel != null;
+            boolean isFormCorrect = !numClient.isEmpty() && !nom.isEmpty() && !prenom.isEmpty() && !tel.isEmpty();
 
             if (isFormCorrect) {
                 try {
                     Connection conn = Db.connect();
                     Statement stmt = conn.createStatement();
                     int rs = stmt.executeUpdate("UPDATE clients SET numClient='" + numClient + "', nom='" + nom + "', prenom='" + prenom + "', telephone='" + tel + "' WHERE numClient='" + id + "'");
-                    message = rs == 1 ? "Modification réussi !" : "Erreur de modification";
+                    if(rs == 1){
+                        alerte.setType("success");
+                        alerte.setMessage("Modification reussi !");
+                    }else{
+                        alerte.setType("error");
+                        alerte.setMessage("Erreur de modification, réessayer svp !");
+                    }
                 } catch (Exception e) {
-                    message = "Erreur de modification";
+                     alerte.setType("error");
+                     alerte.setMessage("Erreur de modification, réessayer svp !");
                 }
             } else {
-                message = "Veuillez bien remplir tous les champs !";
+                 alerte.setType("warning");
+                 alerte.setMessage("Veuillez bien remplir tous les champs !");
             }
 
         } else {
-            message = "Le client n'existe pas dans la liste";
+            alerte.setType("warning");
+            alerte.setMessage("Le client n'existte pas dans la liste !");
         }
 
-        return message;
+        return alerte;
     }
 
-    public String deleteClient(String id) {
+    public Alerte deleteClient(String id) {
         Client client = this.getUniqueClient(id);
-        String message;
+        Alerte alerte = new Alerte();
 
         if (client != null) {
             try {
                 Connection conn = Db.connect();
                 Statement stmt = conn.createStatement();
                 int rs = stmt.executeUpdate("DELETE FROM clients WHERE numClient='" + id + "'");
-                message = rs == 1 ? "Le client a été bien supprimé !" : "Erreur, veuillez réessayer !";
+                if(rs == 1){
+                    alerte.setType("success");
+                    alerte.setMessage("Le client a été bien supprimé !");
+                }else{
+                    alerte.setType("error");
+                    alerte.setMessage("Erreur, veuillez réessayer !");
+                }
             } catch (Exception e) {
-                message = "Erreur, veuillez réessayer !";
+                alerte.setType("error");
+                alerte.setMessage("Erreur, veuillez réessayer !");
             }
 
         } else {
-            message = "Le client n'existe pas dans la liste";
+             alerte.setType("error");
+             alerte.setMessage("Le client n'existe pas !");
         }
 
-        return message;
+        return alerte;
     }
+    
+    public List<InfoClient> getInfoClient(String id) {
+        List<InfoClient> infoClientTab = new ArrayList();
 
+        try {
+
+            Connection conn = Db.connect();
+            Statement statement = conn.createStatement();
+            ResultSet result = statement.executeQuery("SELECT clients.numClient, clients.nom, clients.prenom, "
+                    + "materiels.numMateriel, materiels.design, materiels.prixUnitaire, ventes.quantite, "
+                    + "materiels.prixUnitaire*ventes.quantite as montant, ventes.date FROM `ventes`, `clients`, `materiels` "
+                    + " WHERE ventes.numClient='"+ id +"' AND ventes.numClient = clients.numClient "
+                    + "AND ventes.numMateriel = materiels.numMateriel;");
+            while (result.next()) {
+                
+                String numClient = result.getString("numClient");
+                String nomClient = result.getString("nom") +" "+ result.getString("prenom");
+                String numMateriel = result.getString("numMateriel");
+                String design = result.getString("design");
+                Integer prixUnitaire = result.getInt("prixUnitaire");
+                Integer quantite = result.getInt("quantite");
+                Integer montant = result.getInt("montant");
+                String date = result.getString("date");
+                
+
+                infoClientTab.add(new InfoClient(numClient, nomClient, numMateriel, design, prixUnitaire, quantite, montant, date));
+            }
+
+            result.close();
+            statement.close();
+            conn.close();
+
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
+        return infoClientTab;
+    }
 }

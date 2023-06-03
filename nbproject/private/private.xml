@@ -5,10 +5,11 @@
         <group>
             <file>file:/C:/Users/Orlando/Documents/NetBeansProjects/Gestion%20des%20ventes/src/java/com/project/dao/ClientDao.java</file>
             <file>file:/C:/Users/Orlando/Documents/NetBeansProjects/Gestion%20des%20ventes/src/java/com/project/service/MaterielService.java</file>
-            <file>file:/C:/Users/Orlando/Documents/NetBeansProjects/Gestion%20des%20ventes/src/java/com/project/dao/VenteDao.java</file>
-            <file>file:/C:/Users/Orlando/Documents/NetBeansProjects/Gestion%20des%20ventes/src/java/com/project/bdd/Db.java</file>
+            <file>file:/C:/Users/Orlando/Documents/NetBeansProjects/Gestion%20des%20ventes/src/java/com/project/models/ChiffreAffaire.java</file>
+            <file>file:/C:/Users/Orlando/Documents/NetBeansProjects/Gestion%20des%20ventes/src/java/com/project/dao/MaterielDao.java</file>
+            <file>file:/C:/Users/Orlando/Documents/NetBeansProjects/Gestion%20des%20ventes/src/java/com/project/models/InfoClient.java</file>
+            <file>file:/C:/Users/Orlando/Documents/NetBeansProjects/Gestion%20des%20ventes/src/java/com/project/models/MaterielVendu.java</file>
             <file>file:/C:/Users/Orlando/Documents/NetBeansProjects/Gestion%20des%20ventes/src/java/com/project/service/ClientService.java</file>
-            <file>file:/C:/Users/Orlando/Documents/NetBeansProjects/Gestion%20des%20ventes/src/java/com/project/service/VenteService.java</file>
         </group>
     </open-files>
 </project-private>

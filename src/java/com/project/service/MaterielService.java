@@ -10,6 +10,8 @@ package com.project.service;
  */
 import com.project.dao.MaterielDao;
 import com.project.models.Materiel;
+import com.project.models.MaterielVendu;
+import com.project.utils.Alerte;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.GET;
@@ -44,24 +46,31 @@ public class MaterielService {
         return materielDao.getUniqueMateriel(numMateriel);
     }
     
+    @GET
+    @Path("/liste/materiel_vendu")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<MaterielVendu> MaterielVendu() {
+        return materielDao.getMaterielVendu();
+    }
+    
     @POST
     @Path("/add")
     @Produces(MediaType.APPLICATION_JSON)
-    public String addMateriel(@FormParam("numMateriel") String numMateriel, @FormParam("design") String design, @FormParam("prixUnitaire") Integer prixUnitaire, @FormParam("stock") Integer stock){
+    public Alerte addMateriel(@FormParam("numMateriel") String numMateriel, @FormParam("design") String design, @FormParam("prixUnitaire") Integer prixUnitaire, @FormParam("stock") Integer stock){
         return materielDao.addMateriel(numMateriel, design, prixUnitaire, stock);
     }
     
     @PUT
     @Path("/update/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String updateMateriel(@PathParam("id") String id ,@FormParam("numMateriel") String numMateriel, @FormParam("design") String design, @FormParam("prixUnitaire") Integer prixUnitaire, @FormParam("stock") Integer stock){
+    public Alerte updateMateriel(@PathParam("id") String id ,@FormParam("numMateriel") String numMateriel, @FormParam("design") String design, @FormParam("prixUnitaire") Integer prixUnitaire, @FormParam("stock") Integer stock){
         return materielDao.updateMateriel(id, numMateriel, design, prixUnitaire, stock);
     }
     
     @DELETE
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String deleteMateriel(@PathParam("id") String id) {
+    public Alerte deleteMateriel(@PathParam("id") String id) {
         return materielDao.deleteMateriel(id);
     }
 }
