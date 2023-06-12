@@ -10,6 +10,7 @@ package com.project.service;
  */
 import com.project.dao.VenteDao;
 import com.project.models.Vente;
+import com.project.utils.Alerte;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.GET;
@@ -43,18 +44,39 @@ public class VenteService {
         return venteDao.getUniqueVente(numVente);
     }
     
+    @GET
+    @Path("filtrer_par_mois/{month}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Vente> filtrerVenteByMonth(@PathParam("month") Integer mois) {
+        return venteDao.filterVenteByMonth(mois);
+    }
+    
+    @GET
+    @Path("filtrer_par_annee/{annee}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Vente> filtrerVenteByYear(@PathParam("annee") Integer annee) {
+        return venteDao.filterVenteByYear(annee);
+    }
+    
+    @GET
+    @Path("filtrer_par_date/{date1}/{date2}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Vente> filtrerVenteByDate(@PathParam("date1") String date1, @PathParam("date2") String date2) {
+        return venteDao.filterVenteByDate(date1, date2);
+    }
+    
     @POST
     @Path("/add")
     @Produces(MediaType.APPLICATION_JSON)
-    public String addVente(@FormParam("numClient") String numClient, @FormParam("design") String design, 
-            @FormParam("quantite") Integer quantite, @FormParam("date") String date){
-        return venteDao.addVente(numClient, design, quantite, date);
+    public Alerte addVente(@FormParam("numClient") String numClient, @FormParam("design") String design, 
+            @FormParam("quantite") Integer quantite, @FormParam("stock") Integer stock){
+        return venteDao.addVente(numClient, design, quantite, stock);
     }
     
     @DELETE
     @Path("/{num}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String deleteVent(@PathParam("num") String numVente) {
+    public Alerte deleteVente(@PathParam("num") String numVente) {
         return venteDao.deleteVente(numVente);
     }
 }

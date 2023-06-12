@@ -8,7 +8,6 @@ import com.project.bdd.Db;
 import com.project.models.ChiffreAffaire;
 import com.project.models.Client;
 import com.project.models.InfoClient;
-import com.project.models.Vente;
 import com.project.utils.Alerte;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -55,25 +54,45 @@ public class ClientDao {
     
     public List<ChiffreAffaire> getChiffreAffaire() {
         List<ChiffreAffaire> clientList = new ArrayList();
-
+        List<String> tabNumClient = new ArrayList();
+        List<String> tabAnneeVente = new ArrayList();
+        
         try {
             
             Connection conn = Db.connect();
             Statement statement = conn.createStatement();
-            ResultSet result = statement.executeQuery("SELECT clients.numClient, clients.nom, clients.prenom, "
-                    + "materiels.prixUnitaire*ventes.quantite as montant, YEAR(ventes.date) as annee FROM `ventes`, `materiels`, `clients` "
-                    + "WHERE ventes.numMateriel = materiels.numMateriel AND clients.numClient = ventes.numClient;");
-            while (result.next()) {
-                String numClient = result.getString("numClient");
-                String nom = result.getString("nom");
-                String prenom = result.getString("prenom");
-                Integer montant = result.getInt("montant");
-                String annee = result.getString("annee");
-
-                clientList.add(new ChiffreAffaire(numClient, nom, prenom, montant, annee));
+            
+            ResultSet res = statement.executeQuery("SELECT DISTINCT(YEAR(ventes.date)) as annee ,clients.numClient FROM `ventes`, "
+                    + "`materiels`, `clients` WHERE ventes.numMateriel = materiels.numMateriel AND "
+                    + "clients.numClient = ventes.numClient;");
+            
+            while(res.next()){
+                tabNumClient.add(res.getString(2));
+                tabAnneeVente.add(res.getString(1));
             }
+            
+            for(int i=0; i<tabNumClient.size(); i++){
+            
+                ResultSet result = statement.executeQuery("SELECT clients.numClient, clients.nom, clients.prenom, "
+                    + "SUM(materiels.prixUnitaire*ventes.quantite) as montant, YEAR(ventes.date) as annee FROM `ventes`, "
+                        + "`materiels`, `clients` WHERE ventes.numMateriel = materiels.numMateriel AND "
+                        + "clients.numClient = ventes.numClient AND ventes.numClient='"+tabNumClient.get(i)+"'"
+                        + "AND YEAR(ventes.date)='"+tabAnneeVente.get(i)+"'");
+                while (result.next()) {
+                    String numClient = result.getString("numClient");
+                    String nom = result.getString("nom");
+                    String prenom = result.getString("prenom");
+                    Integer montant = result.getInt("montant");
+                    String annee = result.getString("annee");
 
-            result.close();
+                    clientList.add(new ChiffreAffaire(numClient, nom, prenom, montant, annee));
+                }
+
+                result.close();
+                
+            }
+            
+            
             statement.close();
             conn.close();
 
@@ -207,19 +226,22 @@ public class ClientDao {
     }
     
     public List<InfoClient> getInfoClient(String id) {
+        
         List<InfoClient> infoClientTab = new ArrayList();
 
         try {
 
             Connection conn = Db.connect();
             Statement statement = conn.createStatement();
+              
             ResultSet result = statement.executeQuery("SELECT clients.numClient, clients.nom, clients.prenom, "
-                    + "materiels.numMateriel, materiels.design, materiels.prixUnitaire, ventes.quantite, "
-                    + "materiels.prixUnitaire*ventes.quantite as montant, ventes.date FROM `ventes`, `clients`, `materiels` "
-                    + " WHERE ventes.numClient='"+ id +"' AND ventes.numClient = clients.numClient "
-                    + "AND ventes.numMateriel = materiels.numMateriel;");
+                + "ventes.numMateriel, materiels.design, materiels.prixUnitaire, ventes.quantite as quantite, "
+                + "materiels.prixUnitaire*ventes.quantite as montant, ventes.date FROM `ventes`, `clients`, `materiels` "
+                + " WHERE ventes.numClient='"+ id +"' AND ventes.numClient = clients.numClient "
+                + "AND ventes.numMateriel = materiels.numMateriel");
+
             while (result.next()) {
-                
+
                 String numClient = result.getString("numClient");
                 String nomClient = result.getString("nom") +" "+ result.getString("prenom");
                 String numMateriel = result.getString("numMateriel");
@@ -228,19 +250,20 @@ public class ClientDao {
                 Integer quantite = result.getInt("quantite");
                 Integer montant = result.getInt("montant");
                 String date = result.getString("date");
-                
 
                 infoClientTab.add(new InfoClient(numClient, nomClient, numMateriel, design, prixUnitaire, quantite, montant, date));
+                
+            }
+            
+                result.close();
+                statement.close();
+                conn.close();
+           
+            } catch (Exception e) {
+                System.out.println(e);
             }
 
-            result.close();
-            statement.close();
-            conn.close();
-
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-
-        return infoClientTab;
+            return infoClientTab;
     }
+    
 }

@@ -10,13 +10,13 @@ package com.project.models;
  */
 public class MaterielVendu {
     String numMateriel, design;
-    Integer prixUnitaire, stock, montant;
+    Integer prixUnitaire, quantite, montant;
 
-    public MaterielVendu(String numMateriel, String design, Integer prixUnitaire, Integer stock, Integer montant) {
+    public MaterielVendu(String numMateriel, String design, Integer prixUnitaire, Integer quantite, Integer montant) {
         this.numMateriel = numMateriel;
         this.design = design;
         this.prixUnitaire = prixUnitaire;
-        this.stock = stock;
+        this.quantite = quantite;
         this.montant = montant;
     }
 
@@ -44,13 +44,15 @@ public class MaterielVendu {
         this.prixUnitaire = prixUnitaire;
     }
 
-    public Integer getStock() {
-        return stock;
+    public Integer getQuantite() {
+        return quantite;
     }
 
-    public void setStock(Integer stock) {
-        this.stock = stock;
+    public void setQuantite(Integer quantite) {
+        this.quantite = quantite;
     }
+
+    
 
     public Integer getMontant() {
         return montant;

@@ -16,6 +16,8 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import com.project.models.Vente;
+import com.project.utils.Alerte;
 
 /**
  *
@@ -35,7 +37,8 @@ public class VenteDao {
             Statement statement = conn.createStatement();
             ResultSet result = statement.executeQuery("SELECT nom, prenom, design, prixUnitaire, quantite, "
                     + "prixUnitaire*quantite as montant, date, numVente FROM `ventes`, `clients`, `materiels` "
-                    + "WHERE ventes.numClient = clients.numClient AND ventes.numMateriel = materiels.numMateriel");
+                    + "WHERE ventes.numClient = clients.numClient AND ventes.numMateriel = materiels.numMateriel "
+                    + "ORDER BY numVente");
             while (result.next()) {
                 String nomClient = result.getString(2);
                 String materiel = result.getString(3);
@@ -79,7 +82,7 @@ public class VenteDao {
                 String date = result.getString(7);
                 String numVente = result.getString(8);
 
-                venteSelected = new Vente(numVente, nomClient, materiel, date,prixUnitaire, quantite, montant);
+                venteSelected = new Vente(numVente, nomClient, materiel, date, prixUnitaire, quantite, montant);
                
             }
         } catch (Exception e) {
@@ -89,10 +92,11 @@ public class VenteDao {
         return venteSelected;
     }
 
-    public String addVente(String numClient, String design, Integer quantite, String date) {
-        String message;
+    public Alerte addVente(String numClient, String design, Integer quantite, Integer stock) {
+        Alerte alerte = new Alerte();
         Materiel materielSelected = MaterielDao.getMaterielByDesign(design);
-        boolean isFormCorrect = numClient != null && design != null && quantite != null && date != null;
+        Integer newStock = stock - quantite;
+        boolean isFormCorrect = !numClient.isEmpty() && !design.isEmpty() && quantite != null;
 
         try {
             Connection conn = Db.connect();
@@ -101,38 +105,172 @@ public class VenteDao {
             if (isFormCorrect) {
                 int rs = stmt.executeUpdate("INSERT INTO `ventes` (`numVente`, `numClient`, `numMateriel`, "
                         + "`quantite`, `date`) VALUES (NULL, '"+ numClient +"', "
-                        + "'"+ materielSelected.getNumMateriel() +"', '"+ quantite +"', '"+ date +"')");              
-                message = rs == 1 ? "La vente a été bien effectuée !" : "Erreur d'enregistrement, réessayer svp !";
+                        + "'"+ materielSelected.getNumMateriel() +"', '"+ quantite +"', CURRENT_DATE())");              
+                if(rs == 1){       
+                    alerte.setType("success");
+                    alerte.setMessage("La vente a été bien effectuée !");
+                    stmt.executeUpdate("UPDATE materiels SET stock='" + newStock + "' WHERE numMateriel='" + materielSelected.getNumMateriel() + "'");
+
+                }else{
+                    alerte.setType("error");
+                    alerte.setMessage("Erreur d'enregistrement, réessayer svp !");
+                }
             } else {
-                message = "Veuillez bien remplir tous les champs !";
+                alerte.setType("warning");
+                alerte.setMessage("Veuillez choisir un materiel !");
             }
 
         } catch (Exception e) {
-            message = "Erreur d'enregistrement, réessayer svp !";
+            alerte.setType("error");
+            alerte.setMessage("Erreur d'enregistrement2, réessayer svp !");
         }
 
-        return message;
+        return alerte;
     }
 
-    public String deleteVente(String id) {
+    public Alerte deleteVente(String id) {
         Vente venteSelected = this.getUniqueVente(id);
-        String message;
-
+        Materiel materielSelected = MaterielDao.getMaterielByDesign(venteSelected.getMateriel());
+        Integer newStock = materielSelected.getStock() + venteSelected.getQuantite();
+        Alerte alerte = new Alerte();
+        
         if (venteSelected != null) {
             try {
                 Connection conn = Db.connect();
                 Statement stmt = conn.createStatement();
                 int rs = stmt.executeUpdate("DELETE FROM ventes WHERE numVente='" + id + "'");
-                message = rs == 1 ? "La vente a été bien supprimé !" : "Erreur, veuillez réessayer !";
+                if(rs == 1){
+                    alerte.setType("success");
+                    alerte.setMessage("La vente a été bien supprimée !");
+                    stmt.executeUpdate("UPDATE materiels SET stock='" + newStock + "' WHERE numMateriel='" + materielSelected.getNumMateriel() + "'");
+
+                }else{
+                    alerte.setType("error");
+                    alerte.setMessage("Erreur, veuillez réessayer !");
+                }
             } catch (Exception e) {
-                message = "Erreur, veuillez réessayer !";
+                alerte.setType("error");
+                alerte.setMessage("Erreur, veuillez réessayer !");
             }
 
         } else {
-            message = "La vente n'existe pas dans la liste";
+            alerte.setType("error");
+            alerte.setMessage("La vente n'existe pas dans la liste");
         }
 
-        return message;
-    }
+        return alerte;
+}   
+        
+         public List<Vente> filterVenteByMonth(Integer month) {
+        
+            List<Vente> venteList = new ArrayList();
+
+            try {
+
+                Connection conn = Db.connect();
+                Statement statement = conn.createStatement();
+                ResultSet result = statement.executeQuery("SELECT nom, prenom, design, prixUnitaire, quantite, "
+                        + "prixUnitaire*quantite as montant, date, numVente FROM `ventes`, `clients`, `materiels` "
+                        + "WHERE ventes.numClient = clients.numClient AND ventes.numMateriel = materiels.numMateriel "
+                        + "AND MONTH(ventes.date) = '"+month+"' ORDER BY numVente");
+                while (result.next()) {
+                    String nomClient = result.getString(2);
+                    String materiel = result.getString(3);
+                    int prixUnitaire = result.getInt(4);
+                    int quantite = result.getInt(5);
+                    int montant = result.getInt(6);
+                    String date = result.getString(7);
+                    String numVente = result.getString(8);
+
+                    venteList.add(new Vente(numVente, nomClient, materiel, date,prixUnitaire, quantite, montant));
+                }
+
+                result.close();
+                statement.close();
+                conn.close();
+
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+
+            return venteList;
+
+           
+        }
+         
+          public List<Vente> filterVenteByYear(Integer annee) {
+        
+            List<Vente> venteList = new ArrayList();
+
+            try {
+
+                Connection conn = Db.connect();
+                Statement statement = conn.createStatement();
+                ResultSet result = statement.executeQuery("SELECT nom, prenom, design, prixUnitaire, quantite, "
+                        + "prixUnitaire*quantite as montant, date, numVente FROM `ventes`, `clients`, `materiels` "
+                        + "WHERE ventes.numClient = clients.numClient AND ventes.numMateriel = materiels.numMateriel "
+                        + "AND YEAR(ventes.date) = '"+annee+"' ORDER BY numVente");
+                while (result.next()) {
+                    String nomClient = result.getString(2);
+                    String materiel = result.getString(3);
+                    int prixUnitaire = result.getInt(4);
+                    int quantite = result.getInt(5);
+                    int montant = result.getInt(6);
+                    String date = result.getString(7);
+                    String numVente = result.getString(8);
+
+                    venteList.add(new Vente(numVente, nomClient, materiel, date,prixUnitaire, quantite, montant));
+                }
+
+                result.close();
+                statement.close();
+                conn.close();
+
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+
+            return venteList;
+
+           
+        }
+          
+      
+      public List<Vente> filterVenteByDate(String date1, String date2) {
+        
+            List<Vente> venteList = new ArrayList();
+
+            try {
+
+                Connection conn = Db.connect();
+                Statement statement = conn.createStatement();
+                ResultSet result = statement.executeQuery("SELECT nom, prenom, design, prixUnitaire, quantite, "
+                        + "prixUnitaire*quantite as montant, date, numVente FROM `ventes`, `clients`, `materiels` "
+                        + "WHERE ventes.numClient = clients.numClient AND ventes.numMateriel = materiels.numMateriel "
+                        + "AND ventes.date BETWEEN '"+date1+"' AND '"+date2+"' ORDER BY numVente");
+                while (result.next()) {
+                    String nomClient = result.getString(2);
+                    String materiel = result.getString(3);
+                    int prixUnitaire = result.getInt(4);
+                    int quantite = result.getInt(5);
+                    int montant = result.getInt(6);
+                    String date = result.getString(7);
+                    String numVente = result.getString(8);
+
+                    venteList.add(new Vente(numVente, nomClient, materiel, date,prixUnitaire, quantite, montant));
+                }
+
+                result.close();
+                statement.close();
+                conn.close();
+
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+
+            return venteList;
+
+           
+        }
 
 }
